@@ -18,6 +18,9 @@ export async function GET() {
     const orders = await prisma.cuttingOrder.findMany({
       where: {
         createdBy: rbac.user.id,
+        status: {
+          in: ["CUTTING_IN_PROGRESS", "PENDING_VERIFICATION", "REJECTED"],
+        },
       },
       include: {
         recipe: {
@@ -28,6 +31,19 @@ export async function GET() {
         verificationItems: {
           include: {
             component: true,
+          },
+        },
+        verificationLogs: {
+          orderBy: {
+            timestamp: "desc",
+          },
+          include: {
+            verifier: {
+              select: {
+                fullName: true,
+                email: true,
+              },
+            },
           },
         },
       },

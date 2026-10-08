@@ -108,7 +108,7 @@ export function OrderList({ orders, onEditOrder, onRefresh }: OrderListProps) {
             Production Orders History
           </h2>
           <p className="text-xs" style={{ color: "#475569" }}>
-            Manage your cutting orders, edit drafts, begin corrections, and submit for verification
+            Manage your cutting orders, edit drafts, view verifier rejection notes, and submit for verification
           </p>
         </div>
         <button
@@ -160,6 +160,7 @@ export function OrderList({ orders, onEditOrder, onRefresh }: OrderListProps) {
             <tbody className="divide-y" style={{ borderColor: "#CBD5E1" }}>
               {orders.map((ord) => {
                 const isLoadingThis = loadingOrderId === ord.id;
+                const latestLog = ord.verificationLogs && ord.verificationLogs.length > 0 ? ord.verificationLogs[0] : null;
 
                 return (
                   <tr key={ord.id} className="hover:bg-slate-50/80 transition-colors">
@@ -175,7 +176,14 @@ export function OrderList({ orders, onEditOrder, onRefresh }: OrderListProps) {
                       <div className="font-medium text-slate-800">{Number(ord.actualFabricYds)} yds</div>
                       <div className="text-xs text-slate-500">Roll: {ord.fabricRollId}</div>
                     </td>
-                    <td className="py-3.5 px-3">{renderStatusBadge(ord.status)}</td>
+                    <td className="py-3.5 px-3">
+                      <div>{renderStatusBadge(ord.status)}</div>
+                      {ord.status === "REJECTED" && latestLog?.rejectionNote && (
+                        <div className="mt-1 text-[11px] text-red-700 bg-red-50 p-1.5 rounded border border-red-200 max-w-xs truncate" title={latestLog.rejectionNote}>
+                          Reason: {latestLog.rejectionNote}
+                        </div>
+                      )}
+                    </td>
                     <td className="py-3.5 px-3 text-xs text-slate-600">
                       {ord.firstSubmittedAt
                         ? new Date(ord.firstSubmittedAt).toLocaleString()
@@ -203,14 +211,23 @@ export function OrderList({ orders, onEditOrder, onRefresh }: OrderListProps) {
                       )}
 
                       {ord.status === "REJECTED" && (
-                        <button
-                          type="button"
-                          disabled={isLoadingThis}
-                          onClick={() => handleBeginCorrection(ord.id)}
-                          className="px-3 py-1 text-xs font-semibold text-white bg-amber-600 rounded hover:bg-amber-700 disabled:opacity-50"
-                        >
-                          {isLoadingThis ? "Starting..." : "Begin Correction"}
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => onEditOrder(ord)}
+                            className="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-100"
+                          >
+                            View Inspection Details
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isLoadingThis}
+                            onClick={() => handleBeginCorrection(ord.id)}
+                            className="px-3 py-1 text-xs font-semibold text-white bg-amber-600 rounded hover:bg-amber-700 disabled:opacity-50"
+                          >
+                            {isLoadingThis ? "Starting..." : "Begin Correction"}
+                          </button>
+                        </>
                       )}
 
                       {ord.status === "PENDING_VERIFICATION" && (
@@ -220,9 +237,13 @@ export function OrderList({ orders, onEditOrder, onRefresh }: OrderListProps) {
                       )}
 
                       {ord.status === "VERIFIED" && (
-                        <span className="text-xs font-medium text-emerald-600">
-                          ✓ Verified
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => onEditOrder(ord)}
+                          className="px-2.5 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded hover:bg-emerald-100"
+                        >
+                          View Inspection Log
+                        </button>
                       )}
                     </td>
                   </tr>
