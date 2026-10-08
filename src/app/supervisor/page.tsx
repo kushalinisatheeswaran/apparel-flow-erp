@@ -1,11 +1,36 @@
 import { requirePageRole } from "@/lib/page-access";
 import { ROLE_LABELS } from "@/lib/roles";
+import { prisma } from "@/lib/prisma";
 import { SwitchRoleButton } from "@/components/SwitchRoleButton";
+import { SupervisorDashboardClient } from "./SupervisorDashboardClient";
 
 export const instant = false;
 
 export default async function SupervisorDashboard() {
   const user = await requirePageRole("cutting_supervisor");
+
+  const recipes = await prisma.recipe.findMany({
+    include: {
+      components: {
+        orderBy: { componentName: "asc" },
+      },
+    },
+    orderBy: { recipeCode: "asc" },
+  });
+
+  const formattedRecipes = recipes.map((r) => ({
+    id: r.id,
+    recipeCode: r.recipeCode,
+    name: r.name,
+    category: r.category,
+    stdFabricYards: Number(r.stdFabricYards),
+    wastageCap: Number(r.wastageCap),
+    components: r.components.map((c) => ({
+      id: c.id,
+      componentName: c.componentName,
+      piecesPerGarment: c.piecesPerGarment,
+    })),
+  }));
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
@@ -24,21 +49,8 @@ export default async function SupervisorDashboard() {
         </div>
       </header>
 
-      <main className="flex-1 p-6 max-w-5xl mx-auto w-full space-y-6">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-3">
-          <h2 className="text-lg font-bold text-slate-900">Cutting Supervisor Portal</h2>
-          <p className="text-sm text-slate-600">
-            Welcome, <span className="font-semibold text-slate-900">{user.fullName}</span>. You are authorized to access Cutting Supervisor operations.
-          </p>
-          <div className="pt-4 border-t border-slate-100 flex gap-4">
-            <span className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 rounded border border-slate-200">
-              Active Role: cutting_supervisor
-            </span>
-            <span className="px-3 py-1.5 text-xs font-medium bg-emerald-50 text-emerald-700 rounded border border-emerald-200">
-              Server-Side RBAC Guard Active
-            </span>
-          </div>
-        </div>
+      <main className="flex-1 p-6 max-w-6xl mx-auto w-full space-y-6">
+        <SupervisorDashboardClient initialRecipes={formattedRecipes} />
       </main>
     </div>
   );
