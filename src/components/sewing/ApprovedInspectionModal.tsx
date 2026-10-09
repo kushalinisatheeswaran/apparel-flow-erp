@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import Image from "next/image";
 import {
   parseApprovedSnapshot,
   ApprovedComponentSnapshot,
   isWastageOverCap,
 } from "@/lib/validators/sewing";
+import { getComponentImageUrl } from "@/lib/componentImages";
 
 export interface VerificationLogDetails {
   id: string;
@@ -205,10 +206,31 @@ export function ApprovedInspectionModal({
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white font-medium text-slate-800">
                   {parsedComponents.length > 0 ? (
-                    parsedComponents.map((comp) => (
-                      <tr key={comp.componentId || comp.componentName} className="hover:bg-slate-50">
-                        <td className="p-3 font-semibold text-slate-900">{comp.componentName}</td>
-                        <td className="p-3 text-right font-mono text-slate-700">{comp.expectedQty}</td>
+                    parsedComponents.map((comp) => {
+                      const imgUrl = getComponentImageUrl(comp.componentName);
+                      return (
+                        <tr key={comp.componentId || comp.componentName} className="hover:bg-slate-50">
+                          <td className="p-3 font-semibold text-slate-900">
+                            <div className="flex items-center gap-2.5">
+                              {imgUrl && (
+                                <div className="w-7 h-7 rounded bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center overflow-hidden p-0.5">
+                                  <Image
+                                    src={imgUrl}
+                                    alt={comp.componentName}
+                                    width={28}
+                                    height={28}
+                                    unoptimized
+                                    className="w-full h-full object-contain"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = "none";
+                                    }}
+                                  />
+                                </div>
+                              )}
+                              <span>{comp.componentName}</span>
+                            </div>
+                          </td>
+                          <td className="p-3 text-right font-mono text-slate-700">{comp.expectedQty}</td>
                         <td className="p-3 text-right font-mono text-slate-900 font-bold">{comp.actualQty}</td>
                         <td className="p-3 text-right font-mono font-bold">
                           {comp.variance > 0 ? `+${comp.variance}` : comp.variance}
@@ -231,7 +253,8 @@ export function ApprovedInspectionModal({
                           )}
                         </td>
                       </tr>
-                    ))
+                      );
+                    })
                   ) : (
                     <tr>
                       <td colSpan={5} className="p-4 text-center text-slate-500 italic">

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { PendingOrderItem } from "./PendingOrderList";
+import { getComponentImageUrl } from "@/lib/componentImages";
 
 interface VerificationTerminalProps {
   order: PendingOrderItem;
@@ -193,27 +195,27 @@ export function VerificationTerminal({
   };
 
   return (
-    <div
-      className="p-6 rounded-xl border shadow-sm space-y-6"
-      style={{ backgroundColor: "#FFFFFF", borderColor: "#CBD5E1", color: "#0F172A" }}
-    >
+    <div className="p-6 rounded-xl border border-slate-200 shadow-sm bg-white text-slate-900 space-y-6">
       {/* Header Bar */}
-      <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: "#CBD5E1" }}>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-slate-900">QC Inspection Terminal — {order.orderNo}</h2>
-            <span className="text-xs px-2.5 py-0.5 rounded font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <span>QC Inspection Terminal</span>
+              <span className="font-mono text-slate-500">— Order #{order.orderNo}</span>
+            </h2>
+            <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200">
               Pending QC
             </span>
           </div>
-          <p className="text-xs text-slate-600">
-            Supervisor: <strong>{order.creator.fullName}</strong> ({order.creator.email})
+          <p className="text-xs text-slate-500 mt-1">
+            Submitted by Cutting Supervisor: <strong className="text-slate-700">{order.creator.fullName}</strong> ({order.creator.email})
           </p>
         </div>
         <button
           type="button"
           onClick={onDeselect}
-          className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-300"
+          className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 transition-colors flex items-center gap-1.5 shadow-xs"
         >
           ← Back to Queue
         </button>
@@ -222,49 +224,50 @@ export function VerificationTerminal({
       {error && (
         <div
           role="alert"
-          className="p-3.5 text-sm rounded-md border font-medium"
-          style={{ backgroundColor: "#FEF2F2", borderColor: "#FCA5A5", color: "#B91C1C" }}
+          className="p-4 text-sm rounded-xl border font-medium bg-red-50 border-red-200 text-red-800 flex items-start gap-2"
         >
-          {error}
+          <span className="text-red-600 font-bold">⚠️</span>
+          <span>{error}</span>
         </div>
       )}
 
       {success && (
         <div
           role="status"
-          className="p-3.5 text-sm rounded-md border font-medium text-emerald-800 bg-emerald-50 border-emerald-300"
+          className="p-4 text-sm rounded-xl border font-medium text-emerald-900 bg-emerald-50 border-emerald-300 flex items-start gap-2"
         >
-          {success}
+          <span className="text-emerald-600 font-bold">✓</span>
+          <span>{success}</span>
         </div>
       )}
 
       {/* Order Batch & Fabric Summary Card */}
-      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
-        <div>
-          <span className="text-slate-500 font-medium">Garment Recipe:</span>
+      <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+        <div className="space-y-0.5">
+          <span className="text-slate-500 font-medium">Garment Recipe</span>
           <div className="font-bold text-slate-900 text-sm">{order.recipe.name}</div>
-          <div className="text-slate-500">{order.recipe.recipeCode} ({order.recipe.category})</div>
+          <div className="text-slate-500 font-mono">{order.recipe.recipeCode} ({order.recipe.category})</div>
         </div>
-        <div>
-          <span className="text-slate-500 font-medium">Target Batch Qty:</span>
+        <div className="space-y-0.5">
+          <span className="text-slate-500 font-medium">Target Batch Qty</span>
           <div className="font-bold text-slate-900 text-sm">{order.targetQty} garments</div>
-          <div className="text-slate-500">Fabric Roll: {order.fabricRollId}</div>
+          <div className="text-slate-500">Fabric Roll: <span className="font-mono text-slate-700 font-semibold">{order.fabricRollId}</span></div>
         </div>
-        <div>
-          <span className="text-slate-500 font-medium">Actual Fabric Usage:</span>
-          <div className="font-bold text-slate-900 text-sm">{actualFabricYds} yards</div>
+        <div className="space-y-0.5">
+          <span className="text-slate-500 font-medium">Actual Fabric Usage</span>
+          <div className="font-bold text-slate-900 text-sm">{actualFabricYds.toFixed(2)} yards</div>
           <div className="text-slate-500">Expected: {expectedFabricYds.toFixed(2)} yards</div>
         </div>
-        <div>
-          <span className="text-slate-500 font-medium">Fabric Wastage Variance:</span>
-          <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-            <span>{wastagePct}%</span>
+        <div className="space-y-0.5">
+          <span className="text-slate-500 font-medium">Fabric Wastage Variance</span>
+          <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5 mt-0.5">
+            <span className={isWastageExceeded ? "text-amber-700 font-bold" : "text-emerald-700 font-bold"}>{wastagePct}%</span>
             {isWastageExceeded ? (
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300" title={`Exceeds ${wastageCap}% wastage cap`}>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300" title={`Exceeds ${wastageCap}% wastage cap`}>
                 ⚠️ Over Cap ({wastageCap}%)
               </span>
             ) : (
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
                 ✓ Within Cap ({wastageCap}%)
               </span>
             )}
@@ -274,19 +277,19 @@ export function VerificationTerminal({
 
       {/* Component Counting Table */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900">
             Physical Usable Component Counting Table
           </h3>
           <span className="text-xs text-slate-500 font-medium">
-            Enter usable physical count. Damaged pieces must be excluded.
+            Enter usable physical piece count. Damaged pieces must be excluded.
           </span>
         </div>
 
-        <div className="overflow-x-auto border border-slate-200 rounded-lg">
+        <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-2xs">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="border-b bg-slate-50 text-xs font-semibold uppercase text-slate-600">
+              <tr className="border-b border-slate-200 bg-slate-100/80 text-xs font-bold uppercase tracking-wider text-slate-600">
                 <th className="py-3 px-4">Component Name</th>
                 <th className="py-3 px-4 text-center">Pieces / Unit</th>
                 <th className="py-3 px-4 text-center">Expected Qty</th>
@@ -295,7 +298,7 @@ export function VerificationTerminal({
                 <th className="py-3 px-4 text-right">QC Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-200 bg-white">
               {order.verificationItems.map((item) => {
                 const valStr = countsMap[item.componentId] ?? "";
                 const status = getComputedStatus(item.componentId, item.expectedQty);
@@ -308,14 +311,35 @@ export function VerificationTerminal({
                 }
 
                 return (
-                  <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3 px-4 font-semibold text-slate-900">
-                      {item.component.componentName}
+                      <div className="flex items-center gap-3">
+                        {(() => {
+                          const imgUrl = item.component.imageUrl || getComponentImageUrl(item.component.componentName);
+                          if (!imgUrl) return null;
+                          return (
+                            <div className="w-8 h-8 rounded bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center overflow-hidden p-0.5">
+                              <Image
+                                src={imgUrl}
+                                alt={item.component.componentName}
+                                width={32}
+                                height={32}
+                                unoptimized
+                                className="w-full h-full object-contain"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = "none";
+                                }}
+                              />
+                            </div>
+                          );
+                        })()}
+                        <span>{item.component.componentName}</span>
+                      </div>
                     </td>
-                    <td className="py-3 px-4 text-center text-slate-600 font-medium">
+                    <td className="py-3 px-4 text-center text-slate-600 font-medium font-mono">
                       {item.component.piecesPerGarment}
                     </td>
-                    <td className="py-3 px-4 text-center font-bold text-slate-800">
+                    <td className="py-3 px-4 text-center font-bold text-slate-800 font-mono">
                       {item.expectedQty} pcs
                     </td>
                     <td className="py-3 px-4 text-center">
@@ -327,11 +351,10 @@ export function VerificationTerminal({
                           setCountsMap((prev) => ({ ...prev, [item.componentId]: val }));
                         }}
                         placeholder="Enter count"
-                        className="w-28 text-center px-2 py-1.5 text-sm rounded border font-semibold focus:outline-none focus:ring-2 focus:ring-blue-600"
-                        style={{ backgroundColor: "#FFFFFF", color: "#0F172A", borderColor: "#CBD5E1" }}
+                        className="w-28 text-center px-3 py-1.5 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 font-bold font-mono focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-2xs"
                       />
                     </td>
-                    <td className="py-3 px-4 text-center font-bold text-sm">
+                    <td className="py-3 px-4 text-center font-bold text-sm font-mono">
                       <span
                         className={
                           varianceText.startsWith("+")
@@ -349,22 +372,22 @@ export function VerificationTerminal({
                     <td className="py-3 px-4 text-right">
                       {status === "GREEN" && (
                         <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                          GREEN
+                          ✓ GREEN
                         </span>
                       )}
                       {status === "YELLOW" && (
-                        <span className="px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-300">
-                          YELLOW (+Excess)
+                        <span className="px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                          ⚠️ YELLOW (+Excess)
                         </span>
                       )}
                       {status === "RED" && (
                         <span className="px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 border border-red-300">
-                          RED (-Shortage)
+                          🚫 RED (-Shortage)
                         </span>
                       )}
                       {status === "INVALID" && (
-                        <span className="px-2 py-0.5 text-xs font-bold rounded bg-red-200 text-red-900 border border-red-400">
-                          Whole Integer Required
+                        <span className="px-2.5 py-1 text-xs font-bold rounded bg-red-100 text-red-900 border border-red-300">
+                          Integer Required
                         </span>
                       )}
                       {status === null && (
@@ -382,14 +405,14 @@ export function VerificationTerminal({
       </div>
 
       {/* Action Footer Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t" style={{ borderColor: "#CBD5E1" }}>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200">
         <button
           type="button"
           disabled={isSavingCounts}
           onClick={handleSaveCounts}
-          className="px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50"
+          className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 shadow-2xs"
         >
-          {isSavingCounts ? "Saving..." : "💾 Save Counts Draft"}
+          {isSavingCounts ? "Saving Draft..." : "💾 Save Counts Draft"}
         </button>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -397,7 +420,7 @@ export function VerificationTerminal({
             type="button"
             disabled={!canReject || isRejecting}
             onClick={() => setShowRejectModal(true)}
-            className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-bold text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 sm:flex-none px-5 py-2.5 text-xs font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
           >
             🚫 Reject Batch
           </button>
@@ -405,7 +428,7 @@ export function VerificationTerminal({
             type="button"
             disabled={!canApprove || isApproving}
             onClick={handleApprove}
-            className="flex-1 sm:flex-none px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 sm:flex-none px-6 py-2.5 text-xs font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
           >
             {isApproving ? "Approving..." : "✓ Approve Batch for Sewing"}
           </button>
@@ -414,18 +437,25 @@ export function VerificationTerminal({
 
       {/* Mandatory Rejection Reason Modal */}
       {showRejectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-xl border shadow-xl p-6 space-y-4 bg-white border-slate-300 text-slate-900">
-            <div className="flex items-center justify-between border-b pb-3 border-slate-200">
-              <h3 className="text-lg font-bold text-red-900">Reject Batch — {order.orderNo}</h3>
-              <button type="button" onClick={() => setShowRejectModal(false)} className="text-slate-400 hover:text-slate-600 font-bold text-xl px-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-lg rounded-xl border border-slate-200 shadow-2xl p-6 space-y-4 bg-white text-slate-900 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-lg font-bold text-red-900 flex items-center gap-2">
+                <span>🚫 Reject Batch</span>
+                <span className="font-mono text-slate-500 text-sm">— {order.orderNo}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowRejectModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-xl px-2 rounded-lg hover:bg-slate-100"
+              >
                 ×
               </button>
             </div>
 
             <form onSubmit={handleRejectSubmit} className="space-y-4">
               <div>
-                <label htmlFor="rejectionNote" className="block text-sm font-semibold text-slate-900 mb-1">
+                <label htmlFor="rejectionNote" className="block text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">
                   Mandatory Rejection Reason *
                 </label>
                 <textarea
@@ -435,8 +465,7 @@ export function VerificationTerminal({
                   value={rejectionNote}
                   onChange={(e) => setRejectionNote(e.target.value)}
                   placeholder="Describe physical defects, fabric damage, misprints, or component shortages..."
-                  className="w-full px-3 py-2 text-sm rounded-md border focus:outline-none focus:ring-2 focus:ring-red-600"
-                  style={{ backgroundColor: "#FFFFFF", color: "#0F172A", borderColor: "#CBD5E1" }}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-600 shadow-2xs"
                 />
               </div>
 
@@ -444,14 +473,14 @@ export function VerificationTerminal({
                 <button
                   type="button"
                   onClick={() => setShowRejectModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!rejectionNote.trim() || isRejecting}
-                  className="px-5 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+                  className="px-5 py-2 text-xs font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 shadow-xs"
                 >
                   {isRejecting ? "Rejecting..." : "Confirm Rejection"}
                 </button>
