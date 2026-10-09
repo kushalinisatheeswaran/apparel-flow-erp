@@ -1,6 +1,7 @@
 import { requirePageRole } from "@/lib/page-access";
 import { ROLE_LABELS } from "@/lib/roles";
 import { SwitchRoleButton } from "@/components/SwitchRoleButton";
+import { SewingQueueTerminal } from "@/components/sewing/SewingQueueTerminal";
 
 export const instant = false;
 
@@ -9,10 +10,10 @@ export default async function SewingDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-2xs">
         <div className="flex items-center space-x-4">
           <h1 className="text-xl font-bold text-slate-900">ApparelFlow ERP</h1>
-          <span className="px-2.5 py-1 text-xs font-semibold rounded bg-amber-100 text-amber-800">
+          <span className="px-2.5 py-1 text-xs font-semibold rounded bg-amber-100 text-amber-800 border border-amber-200">
             {ROLE_LABELS[user.role]} Dashboard
           </span>
         </div>
@@ -24,21 +25,8 @@ export default async function SewingDashboard() {
         </div>
       </header>
 
-      <main className="flex-1 p-6 max-w-5xl mx-auto w-full space-y-6">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-3">
-          <h2 className="text-lg font-bold text-slate-900">Sewing Supervisor Dashboard</h2>
-          <p className="text-sm text-slate-600">
-            Welcome, <span className="font-semibold text-slate-900">{user.fullName}</span>. You are authorized to access Sewing Queue operations.
-          </p>
-          <div className="pt-4 border-t border-slate-100 flex gap-4">
-            <span className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 rounded border border-slate-200">
-              Active Role: sewing_supervisor
-            </span>
-            <span className="px-3 py-1.5 text-xs font-medium bg-emerald-50 text-emerald-700 rounded border border-emerald-200">
-              Server-Side RBAC Guard Active
-            </span>
-          </div>
-        </div>
+      <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
+        <SewingQueueTerminal />
       </main>
     </div>
   );

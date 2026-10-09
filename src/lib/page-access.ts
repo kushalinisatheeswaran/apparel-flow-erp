@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { UserRole, getDashboardForRole } from "@/lib/roles";
@@ -11,6 +12,7 @@ export interface DashboardUser {
 }
 
 export async function requirePageRole(allowedRole: UserRole): Promise<DashboardUser> {
+  await connection();
   const session = await auth();
 
   if (!session || !session.user || !session.user.id) {
